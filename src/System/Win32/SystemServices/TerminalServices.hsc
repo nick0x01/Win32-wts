@@ -7,7 +7,9 @@ module System.Win32.SystemServices.TerminalServices
   , wTS_CURRENT_SERVER
   , wTS_CURRENT_SERVER_HANDLE
   -- * Reexports
-  , module TS
+  , WtsConnectState (..)
+  , WtsProtocolType (..)
+  , WtsSessionInfo (..)
   ) where
 
 #include <windows.h>
@@ -18,6 +20,7 @@ import Foreign.C.Types
 import Foreign.Marshal.Array
 import System.Win32.SystemServices.TerminalServices.Types as TS
 import System.Win32.Types
+import qualified Data.Traversable as T
 
 wTS_CURRENT_SERVER :: HANDLE
 wTS_CURRENT_SERVER = nullHANDLE
@@ -27,14 +30,17 @@ wTS_CURRENT_SERVER_HANDLE = nullHANDLE
 
 -- | Retrieves a list of sessions on a specified Remote Desktop Session Host
 -- (RD Session Host) server.
-enumerateSessions :: HANDLE -> IO [WTS_SESSION_INFO]
+enumerateSessions :: HANDLE -> IO [WtsSessionInfo]
 enumerateSessions h =
   with 0 $ \pCount ->
   with (nullPtr :: (Ptr WTS_SESSION_INFO)) $ \ppBuff -> do
     failIfFalse_ "WTSEnumerateSessions"
       $ c_WTSEnumerateSessions h 0 1 ppBuff pCount
     count <- peek pCount
-    peek ppBuff >>= peekArray (fromIntegral count)
+    pBuff <- peek ppBuff
+    result <- peekArray (fromIntegral count) pBuff >>= T.mapM convertWtsSessionInfo
+    c_WTSFreeMemory $ castPtr pBuff
+    return result
 
 -- BOOL WTSEnumerateSessions(
 --   _In_   HANDLE            hServer,
@@ -72,3 +78,6 @@ querySessionProtocol h sid = with 0 $ \pProtoType -> do
 
 foreign import ccall "Win32Wts.h querySessionProtocol"
   c_querySessionProtocol :: HANDLE -> DWORD -> Ptr USHORT -> IO BOOL
+
+foreign import stdcall "wtsapi32.h WTSFreeMemory"
+  c_WTSFreeMemory :: LPVOID -> IO ()

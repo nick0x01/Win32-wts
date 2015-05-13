@@ -1,5 +1,5 @@
 name:                Win32-wts
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            This package provides a partial binding to the Remote Desktop Services API.
 license:             MIT
 license-file:        LICENSE

@@ -10,8 +10,8 @@ main = do
   putStrLn $ printf "%d sessions is active." (length sessions)
   mapM_
     (\s -> do
-      let sid = sessionId s
+      let sid = wsiSessionId s
       protoType <- querySessionProtocol curServer sid
-      putStrLn $ printf "  %d session have %s protocol type." sid $ show protoType
+      putStrLn $ printf "sessionId: %u name: %s state: %s protoType: %s" sid (wsiWinStationName s) (show $ wsiState s) (show protoType)
       )
     sessions
