@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE CPP, ForeignFunctionInterface #-}
 
 module System.Win32.SystemServices.TerminalServices
   ( disconnectSession
@@ -49,7 +49,7 @@ enumerateSessions h =
 --   _Out_  PWTS_SESSION_INFO *ppSessionInfo,
 --   _Out_  DWORD             *pCount
 -- );
-foreign import stdcall "wtsapi32.h WTSEnumerateSessionsW"
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSEnumerateSessionsW"
   c_WTSEnumerateSessions :: HANDLE -> DWORD -> DWORD -> Ptr LPWTS_SESSION_INFO -> Ptr DWORD -> IO BOOL
 
 -- | Disconnects the logged-on user from the specified Remote Desktop Services
@@ -63,7 +63,7 @@ disconnectSession h sid wait = failIfFalse_ "WTSDisconnectSession" $
 --   _In_  DWORD  SessionId,
 --   _In_  BOOL   bWait
 -- );
-foreign import stdcall "wtsapi32.h WTSDisconnectSession"
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSDisconnectSession"
   c_WTSDisconnectSession :: HANDLE -> DWORD -> BOOL -> IO BOOL
 
 -- | Retrieves protocol type for the specified session on the specified Remote
@@ -79,5 +79,5 @@ querySessionProtocol h sid = with 0 $ \pProtoType -> do
 foreign import ccall "Win32Wts.h querySessionProtocol"
   c_querySessionProtocol :: HANDLE -> DWORD -> Ptr USHORT -> IO BOOL
 
-foreign import stdcall "wtsapi32.h WTSFreeMemory"
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSFreeMemory"
   c_WTSFreeMemory :: LPVOID -> IO ()

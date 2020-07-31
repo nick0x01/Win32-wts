@@ -33,6 +33,10 @@ library
   include-dirs: cbits
   c-sources:
     cbits/Win32Wts.c
+  if os(windows) && arch(i386)
+    cpp-options: "-DWINDOWS_CCONV=stdcall"
+  else
+    cpp-options: "-DWINDOWS_CCONV=ccall"
 
 executable win32-wts-get-sessions
   default-language: Haskell2010
