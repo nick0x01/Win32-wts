@@ -33,14 +33,17 @@ wTS_CURRENT_SERVER_HANDLE = nullHANDLE
 enumerateSessions :: HANDLE -> IO [WtsSessionInfo]
 enumerateSessions h =
   with 0 $ \pCount ->
-  with (nullPtr :: (Ptr WTS_SESSION_INFO)) $ \ppBuff -> do
+  alloca $ \ppSessionInfo -> do
     failIfFalse_ "WTSEnumerateSessions"
-      $ c_WTSEnumerateSessions h 0 1 ppBuff pCount
+      $ c_WTSEnumerateSessions h rESERVED wTS_SESSION_INFO_VER_1 ppSessionInfo pCount
     count <- peek pCount
-    pBuff <- peek ppBuff
-    result <- peekArray (fromIntegral count) pBuff >>= T.mapM convertWtsSessionInfo
-    c_WTSFreeMemory $ castPtr pBuff
+    pSessionInfo <- peek ppSessionInfo >>= newForeignPtr wtsFreeFinaliser
+    result <- withForeignPtr pSessionInfo $ \ptr ->
+      peekArray (fromIntegral count) ptr >>= T.mapM convertWtsSessionInfo
     return result
+  where
+    rESERVED = 0
+    wTS_SESSION_INFO_VER_1 = 1
 
 -- BOOL WTSEnumerateSessions(
 --   _In_   HANDLE            hServer,
@@ -81,3 +84,6 @@ foreign import ccall "Win32Wts.h querySessionProtocol"
 
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSFreeMemory"
   c_WTSFreeMemory :: LPVOID -> IO ()
+
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h &WTSFreeMemory"
+  wtsFreeFinaliser :: FunPtr (Ptr a -> IO ())

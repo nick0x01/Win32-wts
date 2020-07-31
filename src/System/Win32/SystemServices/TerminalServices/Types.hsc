@@ -86,13 +86,13 @@ data WTS_SESSION_INFO = WTS_SESSION_INFO
 instance Storable WTS_SESSION_INFO where
   sizeOf _ = #{size WTS_SESSION_INFOW}
   alignment _ = alignment (undefined :: CInt)
-  peek ptr = WTS_SESSION_INFO
-    <$> (peek . castPtr) ptr
-    <*> (peek $ castPtr ptr `plusPtr` 4)
-    <*> (peek $ castPtr ptr `plusPtr` 8)
-  poke ptr (WTS_SESSION_INFO sid wsn st) = do
-    poke (castPtr ptr) sid
-    poke (castPtr ptr `plusPtr` 4) wsn
-    poke (castPtr ptr `plusPtr` 8) st
+  peek p = WTS_SESSION_INFO
+    <$> #{peek WTS_SESSION_INFO, SessionId} p
+    <*> #{peek WTS_SESSION_INFO, pWinStationName} p
+    <*> #{peek WTS_SESSION_INFO, State} p
+  poke p x = do
+    #{poke WTS_SESSION_INFO, SessionId} p $ sessionId x
+    #{poke WTS_SESSION_INFO, pWinStationName} p $ winStationName x
+    #{poke WTS_SESSION_INFO, State} p $ state x
 
 type LPWTS_SESSION_INFO = Ptr WTS_SESSION_INFO
