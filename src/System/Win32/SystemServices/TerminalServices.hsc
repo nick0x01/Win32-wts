@@ -4,9 +4,12 @@ module System.Win32.SystemServices.TerminalServices
   ( disconnectSession
   , enumerateSessions
   , querySessionProtocol
+  , waitSystemEvent
+  , waitSystemEvent'
   , wTS_CURRENT_SERVER
   , wTS_CURRENT_SERVER_HANDLE
   -- * Reexports
+  , SID
   , WtsConnectState (..)
   , WtsProtocolType (..)
   , WtsSessionInfo (..)
@@ -19,6 +22,7 @@ import Foreign
 import Foreign.C.Types
 import Foreign.Marshal.Array
 import System.Win32.SystemServices.TerminalServices.Types as TS
+import System.Win32.SystemServices.TerminalServices.WTS_EVENTS as E
 import System.Win32.Types
 import qualified Data.Traversable as T
 
@@ -70,7 +74,7 @@ foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSDisconnectSession"
   c_WTSDisconnectSession :: HANDLE -> DWORD -> BOOL -> IO BOOL
 
 -- | Retrieves protocol type for the specified session on the specified Remote
--- Desktop Session Host (RD Session Host) server. 
+-- Desktop Session Host (RD Session Host) server.
 -- It's not a Win32Api function and It returns not a Win32Api type.
 querySessionProtocol :: HANDLE -> DWORD -> IO WtsProtocolType
 querySessionProtocol h sid = with 0 $ \pProtoType -> do
@@ -81,6 +85,30 @@ querySessionProtocol h sid = with 0 $ \pProtoType -> do
 
 foreign import ccall "Win32Wts.h querySessionProtocol"
   c_querySessionProtocol :: HANDLE -> DWORD -> Ptr USHORT -> IO BOOL
+
+-- BOOL WTSWaitSystemEvent(
+--   IN HANDLE hServer,
+--   IN DWORD  EventMask,
+--   OUT DWORD *pEventFlags
+-- );
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSWaitSystemEvent"
+  c_WTSWaitSystemEvent :: HANDLE -> DWORD -> Ptr DWORD -> IO BOOL
+
+-- Call of this function (from other threads) can block the main thread
+waitSystemEvent :: HANDLE -> [WTS_EVENT] -> IO [WTS_EVENT]
+waitSystemEvent h eventMask =
+  with 0 $ \pEventFlags -> do
+    failIfFalse_ "WTSWaitSystemEvent"
+      $ c_WTSWaitSystemEvent h (E.flag eventMask) pEventFlags
+    E.peekWtsEvents pEventFlags
+
+waitSystemEvent' :: HANDLE -> [WTS_EVENT] -> IO (Either ErrCode [WTS_EVENT])
+waitSystemEvent' h eventMask =
+  with 0 $ \pEventFlags -> do
+    res <- c_WTSWaitSystemEvent h (E.flag eventMask) pEventFlags
+    if res
+      then Right <$> E.peekWtsEvents pEventFlags
+      else Left <$> getLastError
 
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSFreeMemory"
   c_WTSFreeMemory :: LPVOID -> IO ()

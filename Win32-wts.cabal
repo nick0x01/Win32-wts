@@ -22,6 +22,7 @@ library
   default-language: Haskell2010
   exposed-modules:
       System.Win32.SystemServices.TerminalServices
+      System.Win32.SystemServices.TerminalServices.WTS_EVENTS
   other-modules:
       System.Win32.SystemServices.TerminalServices.Types
   build-depends:

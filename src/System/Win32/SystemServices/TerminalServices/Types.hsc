@@ -57,6 +57,8 @@ data WtsProtocolType
   | WtsRDP
   deriving (Enum, Eq, Show)
 
+type SID = DWORD
+
 -- | Contains information about a client session on a Remote Desktop Session
 -- Host (RD Session Host) server.
 data WtsSessionInfo = WtsSessionInfo
