@@ -7,7 +7,6 @@ import System.Win32.WTS.Types
 import System.Win32.Types
 
 #include <windows.h>
-#include "Win32Wts.h"
 
 -- BOOL WTSEnumerateSessions(
 --   _In_   HANDLE            hServer,
@@ -36,9 +35,6 @@ foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSDisconnectSession"
 -- );
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSQuerySessionInformationW"
   c_WTSQuerySessionInformation :: HANDLE -> DWORD -> WTS_INFO_CLASS -> Ptr LPWSTR -> Ptr DWORD -> IO BOOL
-
-foreign import ccall "Win32Wts.h querySessionProtocol"
-  c_querySessionProtocol :: HANDLE -> DWORD -> Ptr USHORT -> IO BOOL
 
 -- BOOL WTSWaitSystemEvent(
 --   IN HANDLE hServer,

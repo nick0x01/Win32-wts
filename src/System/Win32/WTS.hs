@@ -1,7 +1,6 @@
 module System.Win32.WTS
   ( disconnectSession
   , enumerateSessions
-  , querySessionProtocol
   , waitSystemEvent
   , waitSystemEvent'
   -- * Reexports
@@ -43,28 +42,6 @@ enumerateSessions h =
 disconnectSession :: HANDLE -> DWORD -> BOOL -> IO ()
 disconnectSession h sid wait = failIfFalse_ "WTSDisconnectSession" $
   c_WTSDisconnectSession h sid wait
-
-querySessionInformation :: HANDLE -> DWORD -> WtsInfoClass -> (LPWSTR -> DWORD -> IO b) -> IO b
-querySessionInformation h sid infoClass convertFn =
-  with 0 $ \pBytesReturned ->
-  alloca $ \ppBuffer -> do
-    failIfFalse_ "WTSQuerySessionInformation"
-      $ c_WTSQuerySessionInformation h sid infoClass' ppBuffer pBytesReturned
-    bytesReturned <- peek pBytesReturned
-    pBuffer <- peek ppBuffer >>= newForeignPtr wtsFreeFinaliser
-    withForeignPtr pBuffer $ \ptr -> convertFn ptr bytesReturned
-  where
-    infoClass' = WTS_INFO_CLASS (fromIntegral $ fromEnum infoClass)
-
--- | Retrieves protocol type for the specified session on the specified Remote
--- Desktop Session Host (RD Session Host) server.
--- It's not a Win32Api function and It returns not a Win32Api type.
-querySessionProtocol :: HANDLE -> DWORD -> IO WtsProtocolType
-querySessionProtocol h sid = with 0 $ \pProtoType -> do
-  failIfFalse_ "querySessionProtocol"
-    $ c_querySessionProtocol h sid pProtoType
-  protoType <- peek pProtoType
-  return . toEnum $ fromIntegral protoType
 
 -- Call of this function (from other threads) can block the main thread
 waitSystemEvent :: HANDLE -> [WTS_EVENT] -> IO [WTS_EVENT]

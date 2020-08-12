@@ -1,15 +1,14 @@
 module System.Win32.WTS.Types where
 
-#include <windows.h>
-#include <wtsapi32.h>
-#include <Win32Wts.h>
-
 import Control.Applicative
 import Foreign
 import Foreign.C
 import Foreign.C.String
 import Foreign.Storable ()
 import System.Win32.Types
+
+#include <windows.h>
+#include <wtsapi32.h>
 
 wTS_CURRENT_SERVER :: HANDLE
 wTS_CURRENT_SERVER = nullHANDLE
