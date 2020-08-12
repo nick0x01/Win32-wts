@@ -1,6 +1,6 @@
 module Main (main) where
 
-import System.Win32.SystemServices.TerminalServices
+import System.Win32.WTS
 import Text.Printf
 
 main :: IO ()

@@ -1,4 +1,4 @@
-module System.Win32.SystemServices.TerminalServices.Types where
+module System.Win32.WTS.Types where
 
 #include <windows.h>
 #include <wtsapi32.h>
@@ -10,6 +10,12 @@ import Foreign.C
 import Foreign.C.String
 import Foreign.Storable ()
 import System.Win32.Types
+
+wTS_CURRENT_SERVER :: HANDLE
+wTS_CURRENT_SERVER = nullHANDLE
+
+wTS_CURRENT_SERVER_HANDLE :: HANDLE
+wTS_CURRENT_SERVER_HANDLE = nullHANDLE
 
 newtype WTS_CONNECTSTATE_CLASS = WTS_CONNECTSTATE_CLASS { connStateClass :: #{type WTS_CONNECTSTATE_CLASS} }
   deriving (Eq)

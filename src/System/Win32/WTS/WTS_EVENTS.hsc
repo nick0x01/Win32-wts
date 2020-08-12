@@ -1,4 +1,4 @@
-module System.Win32.SystemServices.TerminalServices.WTS_EVENTS
+module System.Win32.WTS.WTS_EVENTS
   ( WTS_EVENT (..)
   , peekWtsEvents
   , pokeWtsEvents

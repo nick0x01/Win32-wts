@@ -1,5 +1,5 @@
 name:                Win32-wts
-version:             0.2.0.0
+version:             0.3.0.0
 synopsis:            This package provides a partial binding to the Remote Desktop Services API.
 license:             MIT
 license-file:        LICENSE
@@ -21,10 +21,11 @@ Flag build-tests
 library
   default-language: Haskell2010
   exposed-modules:
-      System.Win32.SystemServices.TerminalServices
-      System.Win32.SystemServices.TerminalServices.WTS_EVENTS
+      System.Win32.WTS
+      System.Win32.WTS.WTS_EVENTS
   other-modules:
-      System.Win32.SystemServices.TerminalServices.Types
+      System.Win32.WTS.Internal
+      System.Win32.WTS.Types
   build-depends:
       base >= 4.7 && < 5
     , Win32 >= 2
