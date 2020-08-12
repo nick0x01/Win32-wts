@@ -98,3 +98,81 @@ instance Storable WTS_SESSION_INFO where
     #{poke WTS_SESSION_INFO, State} p $ state x
 
 type LPWTS_SESSION_INFO = Ptr WTS_SESSION_INFO
+
+-- WTS_INFO_CLASS
+-- | Contains values that indicate the type of session information
+-- to retrieve in a call to the WTSQuerySessionInformation function.
+newtype WTS_INFO_CLASS = WTS_INFO_CLASS { infoClass :: #{type WTS_INFO_CLASS} }
+  deriving (Eq)
+
+instance Storable WTS_INFO_CLASS where
+  sizeOf _ = #{size WTS_INFO_CLASS}
+  alignment _ = 4
+  peek p = fmap WTS_INFO_CLASS (peek $ castPtr p)
+  poke p (WTS_INFO_CLASS x) = poke (castPtr p) x
+
+#{enum WTS_INFO_CLASS, WTS_INFO_CLASS
+  , icWTSInitialProgram = WTSInitialProgram
+  , icWTSApplicationName = WTSApplicationName
+  , icWTSWorkingDirectory = WTSWorkingDirectory
+  , icWTSOEMId = WTSOEMId
+  , icWTSSessionId = WTSSessionId
+  , icWTSUserName = WTSUserName
+  , icWTSWinStationName = WTSWinStationName
+  , icWTSDomainName = WTSDomainName
+  , icWTSConnectState = WTSConnectState
+  , icWTSClientBuildNumber = WTSClientBuildNumber
+  , icWTSClientName = WTSClientName
+  , icWTSClientDirectory = WTSClientDirectory
+  , icWTSClientProductId = WTSClientProductId
+  , icWTSClientHardwareId = WTSClientHardwareId
+  , icWTSClientAddress = WTSClientAddress
+  , icWTSClientDisplay = WTSClientDisplay
+  , icWTSClientProtocolType = WTSClientProtocolType
+  , icWTSIdleTime = WTSIdleTime
+  , icWTSLogonTime = WTSLogonTime
+  , icWTSIncomingBytes = WTSIncomingBytes
+  , icWTSOutgoingBytes = WTSOutgoingBytes
+  , icWTSIncomingFrames = WTSIncomingFrames
+  , icWTSOutgoingFrames = WTSOutgoingFrames
+  , icWTSClientInfo = WTSClientInfo
+  , icWTSSessionInfo = WTSSessionInfo
+}
+-- , icWTSSessionInfoEx = WTSSessionInfoEx
+-- , icWTSConfigInfo = WTSConfigInfo
+-- , icWTSValidationInfo = WTSValidationInfo
+-- , icWTSSessionAddressV4 = WTSSessionAddressV4
+-- , icWTSIsRemoteSession = WTSIsRemoteSession
+
+data WtsInfoClass
+  = WTSInitialProgram
+  | WTSApplicationName
+  | WTSWorkingDirectory
+  | WTSOEMId
+  | WTSSessionId
+  | WTSUserName
+  | WTSWinStationName
+  | WTSDomainName
+  | WTSConnectState
+  | WTSClientBuildNumber
+  | WTSClientName
+  | WTSClientDirectory
+  | WTSClientProductId
+  | WTSClientHardwareId
+  | WTSClientAddress
+  | WTSClientDisplay
+  | WTSClientProtocolType
+  | WTSIdleTime
+  | WTSLogonTime
+  | WTSIncomingBytes
+  | WTSOutgoingBytes
+  | WTSIncomingFrames
+  | WTSOutgoingFrames
+  | WTSClientInfo
+  | WTSSessionInfo
+  -- | WTSSessionInfoEx
+  -- | WTSConfigInfo
+  -- | WTSValidationInfo
+  -- | WTSSessionAddressV4
+  -- | WTSIsRemoteSession
+  deriving (Enum, Eq, Show)

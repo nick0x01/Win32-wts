@@ -73,6 +73,28 @@ disconnectSession h sid wait = failIfFalse_ "WTSDisconnectSession" $
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSDisconnectSession"
   c_WTSDisconnectSession :: HANDLE -> DWORD -> BOOL -> IO BOOL
 
+-- BOOL WTSQuerySessionInformationW(
+--   IN HANDLE         hServer,
+--   IN DWORD          SessionId,
+--   IN WTS_INFO_CLASS WTSInfoClass,
+--   LPWSTR            *ppBuffer,
+--   DWORD             *pBytesReturned
+-- );
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSQuerySessionInformationW"
+  c_WTSQuerySessionInformation :: HANDLE -> DWORD -> WTS_INFO_CLASS -> Ptr LPWSTR -> Ptr DWORD -> IO BOOL
+
+querySessionInformation :: HANDLE -> DWORD -> WtsInfoClass -> (LPWSTR -> DWORD -> IO b) -> IO b
+querySessionInformation h sid infoClass convertFn =
+  with 0 $ \pBytesReturned ->
+  alloca $ \ppBuffer -> do
+    failIfFalse_ "WTSQuerySessionInformation"
+      $ c_WTSQuerySessionInformation h sid infoClass' ppBuffer pBytesReturned
+    bytesReturned <- peek pBytesReturned
+    pBuffer <- peek ppBuffer >>= newForeignPtr wtsFreeFinaliser
+    withForeignPtr pBuffer $ \ptr -> convertFn ptr bytesReturned
+  where
+    infoClass' = WTS_INFO_CLASS (fromIntegral $ fromEnum infoClass)
+
 -- | Retrieves protocol type for the specified session on the specified Remote
 -- Desktop Session Host (RD Session Host) server.
 -- It's not a Win32Api function and It returns not a Win32Api type.
