@@ -1,9 +1,11 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RecordWildCards #-}
 module System.Win32.WTS.Types where
 
 import Control.Applicative
 import Foreign
 import Foreign.C
-import Foreign.C.String
 import Foreign.Storable ()
 import System.Win32.Types
 
@@ -15,6 +17,16 @@ wTS_CURRENT_SERVER = nullHANDLE
 
 wTS_CURRENT_SERVER_HANDLE :: HANDLE
 wTS_CURRENT_SERVER_HANDLE = nullHANDLE
+
+wTS_CURRENT_SESSION :: DWORD
+wTS_CURRENT_SESSION = #{const WTS_CURRENT_SESSION}
+
+type SID = DWORD
+
+type ULONG = Word32
+
+wcharSize :: Int
+wcharSize = #{size wchar_t}
 
 newtype WTS_CONNECTSTATE_CLASS = WTS_CONNECTSTATE_CLASS { connStateClass :: #{type WTS_CONNECTSTATE_CLASS} }
   deriving (Eq)
@@ -52,6 +64,9 @@ data WtsConnectState
   | WTSInit
   deriving (Enum, Eq, Show)
 
+convertWtsConnectionState :: WTS_CONNECTSTATE_CLASS -> WtsConnectState
+convertWtsConnectionState = toEnum . fromIntegral . connStateClass
+
 -- | Specifies information about the protocol type for the session.
 data WtsProtocolType
   -- | The console session.
@@ -62,7 +77,8 @@ data WtsProtocolType
   | WtsRDP
   deriving (Enum, Eq, Show)
 
-type SID = DWORD
+convertWtsProtocolType :: USHORT -> WtsProtocolType
+convertWtsProtocolType = toEnum . fromIntegral
 
 -- | Contains information about a client session on a Remote Desktop Session
 -- Host (RD Session Host) server.
@@ -114,3 +130,37 @@ instance Storable LARGE_INTEGER_STRUCT where
   peek p = LARGE_INTEGER_STRUCT <$> #{peek LARGE_INTEGER, QuadPart} p
   poke p x = #{poke LARGE_INTEGER, QuadPart} p $ largeIntQuadPart x
 
+newtype MessageResponse = MessageResponse { unMessageResponse :: DWORD }
+  deriving (Show, Eq, Storable)
+
+pattern IDABORT = MessageResponse #{const IDABORT}
+pattern IDCANCEL = MessageResponse #{const IDCANCEL}
+pattern IDCONTINUE = MessageResponse #{const IDCONTINUE}
+pattern IDIGNORE = MessageResponse #{const IDIGNORE}
+pattern IDNO = MessageResponse #{const IDNO}
+pattern IDOK = MessageResponse #{const IDOK}
+pattern IDRETRY = MessageResponse #{const IDRETRY}
+pattern IDTRYAGAIN = MessageResponse #{const IDTRYAGAIN}
+pattern IDYES = MessageResponse #{const IDYES}
+-- The bWait parameter was FALSE, so the function returned without waiting for a response.
+pattern IDASYNC = MessageResponse #{const IDASYNC}
+-- The bWait parameter was TRUE and the time-out interval elapsed.
+pattern IDTIMEOUT = MessageResponse #{const IDTIMEOUT}
+
+newtype MessageBoxStyle = MessageBoxStyle { unMessageBoxStyle :: DWORD }
+  deriving (Show, Eq, Storable)
+
+-- The message box contains three push buttons: Abort, Retry, and Ignore.
+pattern MB_ABORTRETRYIGNORE = MessageBoxStyle #{const MB_ABORTRETRYIGNORE}
+-- The message box contains three push buttons: Cancel, Try Again, Continue. Use this message box type instead of MB_ABORTRETRYIGNORE.
+pattern MB_CANCELTRYCONTINUE = MessageBoxStyle #{const MB_CANCELTRYCONTINUE}
+-- The message box contains one push button: OK. This is the default.
+pattern MB_OK = MessageBoxStyle #{const MB_OK}
+-- The message box contains two push buttons: OK and Cancel.
+pattern MB_OKCANCEL = MessageBoxStyle #{const MB_OKCANCEL}
+-- The message box contains two push buttons: Retry and Cancel.
+pattern MB_RETRYCANCEL = MessageBoxStyle #{const MB_RETRYCANCEL}
+-- The message box contains two push buttons: Yes and No.
+pattern MB_YESNO = MessageBoxStyle #{const MB_YESNO}
+-- The message box contains three push buttons: Yes, No, and Cancel.
+pattern MB_YESNOCANCEL = MessageBoxStyle #{const MB_YESNOCANCEL}

@@ -1,21 +1,33 @@
 {-# LANGUAGE LambdaCase #-}
 module Main (main) where
 
+import Control.Monad (void)
 import Data.Monoid ((<>))
 import Options.Applicative
 import Text.Printf
+import qualified Data.Text as T
 
 import System.Win32.WTS
 import System.Win32.WTS.SessionInformation
 
 data Command
   = SessionsList
+  | Disconnect SID
+  | Logoff SID
+  | SendMessage SID String String
   deriving (Eq, Show)
 
 commandParse :: Parser Command
 commandParse = subparser (
-    command "sessions-list" (info (pure SessionsList) (progDesc "Show all sessions at the current machine"))
+       command "sessions-list" (info (pure SessionsList) (progDesc "Show all sessions at the current machine"))
+    <> command "disconnect" (info disconnectCmd (progDesc "Disconnect the session with specified SID"))
+    <> command "logoff" (info logoffCmd (progDesc "Logoff the sessions with specified SID"))
+    <> command "message" (info messageCmd (progDesc "Send a message to the session with specified SID"))
   )
+  where
+    disconnectCmd = Disconnect <$> argument auto (metavar "SID" <> help "Session ID to disconnect")
+    logoffCmd = Logoff <$> argument auto (metavar "SID" <> help "Session ID to logoff")
+    messageCmd = SendMessage <$> argument auto (metavar "SID" <> help "Session ID") <*> strOption (long "title" <> short 't') <*> strOption (long "message" <> short 'm')
 
 main :: IO ()
 main = execParser cmdParser >>= \case
@@ -45,5 +57,11 @@ main = execParser cmdParser >>= \case
             clientName hRes vRes colorDepth clientBuildNum
           )
         sessions
+    Disconnect sid ->
+      disconnectSession wTS_CURRENT_SERVER_HANDLE sid False
+    Logoff sid ->
+      logoffSession wTS_CURRENT_SERVER_HANDLE sid False
+    SendMessage sid title message ->
+      void $ sendMessage wTS_CURRENT_SERVER_HANDLE sid (T.pack title) (T.pack message) MB_OK 0 False
   where
     cmdParser = info commandParse (fullDesc <> progDesc "Win32-wts test tool")

@@ -30,6 +30,7 @@ library
       System.Win32.WTS.Types
   build-depends:
       base >= 4.7 && < 5
+    , text
     , Win32 >= 2
   hs-source-dirs: src
   cc-options: "-D_WIN32_WINNT=_WIN32_WINNT_WIN8"
@@ -48,6 +49,7 @@ executable win32-wts-test
     build-depends:
         base
       , optparse-applicative
+      , text
       , Win32-wts
   else
     buildable: False

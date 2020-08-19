@@ -27,6 +27,14 @@ foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSEnumerateSessionsW"
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSDisconnectSession"
   c_WTSDisconnectSession :: HANDLE -> DWORD -> BOOL -> IO BOOL
 
+-- BOOL WTSLogoffSession(
+--   IN HANDLE hServer,
+--   IN DWORD  SessionId,
+--   IN BOOL   bWait
+-- );
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSLogoffSession"
+  c_WTSLogoffSession :: HANDLE -> DWORD -> BOOL -> IO BOOL
+
 -- BOOL WTSQuerySessionInformationW(
 --   IN HANDLE         hServer,
 --   IN DWORD          SessionId,
@@ -45,8 +53,29 @@ foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSQuerySessionInformationW"
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSWaitSystemEvent"
   c_WTSWaitSystemEvent :: HANDLE -> DWORD -> Ptr DWORD -> IO BOOL
 
+-- BOOL WTSSendMessageW(
+--   IN HANDLE hServer,
+--   IN DWORD  SessionId,
+--   LPWSTR    pTitle,
+--   IN DWORD  TitleLength,
+--   LPWSTR    pMessage,
+--   IN DWORD  MessageLength,
+--   IN DWORD  Style,
+--   IN DWORD  Timeout,
+--   DWORD     *pResponse,
+--   IN BOOL   bWait
+-- );
+foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSSendMessageW"
+  c_WTSSendMessage :: HANDLE -> DWORD -> LPWSTR -> DWORD -> LPWSTR -> DWORD -> DWORD -> DWORD -> Ptr DWORD -> BOOL -> IO BOOL
+
+-- void WTSFreeMemory(
+--   IN PVOID pMemory
+-- );
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSFreeMemory"
   c_WTSFreeMemory :: LPVOID -> IO ()
 
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h &WTSFreeMemory"
   wtsFreeFinaliser :: FunPtr (Ptr a -> IO ())
+
+foreign import WINDOWS_CCONV unsafe "winbase.h WTSGetActiveConsoleSessionId"
+ c_WTSGetActiveConsoleSessionId :: IO DWORD
