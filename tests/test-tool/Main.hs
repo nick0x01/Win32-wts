@@ -23,16 +23,26 @@ main = execParser cmdParser >>= \case
       let curServer = wTS_CURRENT_SERVER_HANDLE
       sessions <- enumerateSessions curServer
       putStrLn $ printf "There are %d sessions." (length sessions)
+      consoleSid <- getActiveConsoleSessionId
+      putStrLn $ printf "Current console session: %s" (show consoleSid)
       mapM_
         (\s -> do
           let sid = wsiSessionId s
-          user <- querySessionUserName curServer sid
-          domain <- querySessionDomainName curServer sid
-          winStation <- queryWinStationName curServer sid
+          isConsole <- isConcoleSession sid
+          state <- quetyConnectionState curServer sid
           protoType <- queryClientProtocolType curServer sid
-          putStrLn $
-            printf "sessionId: %u name: %s state: %s username: %s domain: %s winStation: %s protocolType: %s"
-              sid (wsiWinStationName s) (show $ wsiState s) user domain winStation (show protoType)
+          winStationName <- queryWinStationName curServer sid
+          domain <- querySessionDomainName curServer sid
+          userName <- querySessionUserName curServer sid
+          clientName <- queryClientName curServer sid
+          clientBuildNum <- queryClientBuildNumber curServer sid
+          (WTS_CLIENT_DISPLAY hRes vRes colorDepth) <- queryClientDisplay curServer sid
+          putStrLn $ printf "\n%sSession SID: %u state: %s Protocol: %s"
+            (if isConsole then "Console " else "") sid (show state) (show protoType)
+          putStrLn $ printf "\tWinStationName: %s\n\tDomain: %s\n\tUserName: %s"
+            winStationName domain userName
+          putStrLn $ printf "Client:\n\tClientName: %s\n\tDisplay: %i x %i\n\tColorDepth: %i-bit\n\tBuildNumber: %d"
+            clientName hRes vRes colorDepth clientBuildNum
           )
         sessions
   where

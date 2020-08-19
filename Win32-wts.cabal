@@ -26,11 +26,13 @@ library
       System.Win32.WTS.WTS_EVENTS
   other-modules:
       System.Win32.WTS.Internal
+      System.Win32.WTS.SessionInformation.Types
       System.Win32.WTS.Types
   build-depends:
       base >= 4.7 && < 5
     , Win32 >= 2
   hs-source-dirs: src
+  cc-options: "-D_WIN32_WINNT=_WIN32_WINNT_WIN8"
   extra-libraries: Wtsapi32
   if os(windows) && arch(i386)
     cpp-options: "-DWINDOWS_CCONV=stdcall"

@@ -6,13 +6,21 @@ module System.Win32.WTS.SessionInformation
   , queryWinStationName
   , queryClientName
   , queryClientProtocolType
+  , queryClientBuildNumber
+  , convertWtsConnectionState
+  , queryClientDisplay
+  , quetyConnectionState
+  , module Reexports
   ) where
 
 import Foreign
 import Foreign.C.String
 import System.Win32.Types
 import System.Win32.WTS.Internal
+import System.Win32.WTS.SessionInformation.Types
 import System.Win32.WTS.Types
+import qualified System.Win32.WTS.SessionInformation.Types as Reexports
+  ( WTSINFO (..), WTSCLIENT (..), WTS_CLIENT_DISPLAY (..) )
 
 -- | Retrieves session information for the specified session on the specified
 -- Remote Desktop Session Host (RD Session Host) server. It can be used to query
@@ -51,6 +59,30 @@ queryClientName =
 
 queryClientProtocolType :: HANDLE -> SID -> IO WtsProtocolType
 queryClientProtocolType h sid =
-  querySessionInformation h sid WTSClientProtocolType $ \ptr _ -> do
-    (protoType :: USHORT) <- peek (castPtr ptr)
-    return (toEnum $ fromIntegral protoType)
+  querySessionInformation h sid WTSClientProtocolType $ \ptr _ ->
+    convertWtsProtocolType <$> peek (castPtr ptr)
+
+queryClientBuildNumber :: HANDLE -> SID -> IO ULONG
+queryClientBuildNumber h sid =
+  querySessionInformation h sid WTSClientBuildNumber $ \ptr _ ->
+    peek (castPtr ptr)
+
+querySessionInfo :: HANDLE -> SID -> IO WTSINFO
+querySessionInfo h sid =
+  querySessionInformation h sid WTSSessionInfo $ \ptr _ ->
+    peek (castPtr ptr)
+
+queryClientInfo :: HANDLE -> SID -> IO WTSCLIENT
+queryClientInfo h sid =
+  querySessionInformation h sid WTSClientInfo $ \ptr _ ->
+    peek (castPtr ptr)
+
+queryClientDisplay :: HANDLE -> SID -> IO WTS_CLIENT_DISPLAY
+queryClientDisplay h sid =
+  querySessionInformation h sid WTSClientDisplay $ \ptr _ ->
+    peek (castPtr ptr)
+
+quetyConnectionState :: HANDLE -> SID -> IO WtsConnectState
+quetyConnectionState h sid =
+  querySessionInformation h sid WTSConnectState $ \ptr _ ->
+    convertWtsConnectionState <$> peek (castPtr ptr)

@@ -4,6 +4,7 @@ module System.Win32.WTS.Internal where
 import Foreign
 import Foreign.C.Types
 import System.Win32.WTS.Types
+import System.Win32.WTS.SessionInformation.Types
 import System.Win32.Types
 
 #include <windows.h>
