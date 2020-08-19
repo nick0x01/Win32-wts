@@ -17,7 +17,7 @@ import System.Win32.Types
 --   _Out_  DWORD             *pCount
 -- );
 foreign import WINDOWS_CCONV unsafe "wtsapi32.h WTSEnumerateSessionsW"
-  c_WTSEnumerateSessions :: HANDLE -> DWORD -> DWORD -> Ptr LPWTS_SESSION_INFO -> Ptr DWORD -> IO BOOL
+  c_WTSEnumerateSessions :: HANDLE -> DWORD -> DWORD -> Ptr PWTS_SESSION_INFO -> Ptr DWORD -> IO BOOL
 
 -- BOOL WTSDisconnectSession(
 --   _In_  HANDLE hServer,

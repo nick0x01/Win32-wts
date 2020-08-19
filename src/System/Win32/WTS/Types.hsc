@@ -92,17 +92,17 @@ data WTS_SESSION_INFO = WTS_SESSION_INFO
 
 instance Storable WTS_SESSION_INFO where
   sizeOf _ = #{size WTS_SESSION_INFOW}
-  alignment _ = alignment (undefined :: CInt)
+  alignment _ = #{alignment WTS_SESSION_INFOW}
   peek p = WTS_SESSION_INFO
-    <$> #{peek WTS_SESSION_INFO, SessionId} p
-    <*> #{peek WTS_SESSION_INFO, pWinStationName} p
-    <*> #{peek WTS_SESSION_INFO, State} p
+    <$> #{peek WTS_SESSION_INFOW, SessionId} p
+    <*> #{peek WTS_SESSION_INFOW, pWinStationName} p
+    <*> #{peek WTS_SESSION_INFOW, State} p
   poke p x = do
-    #{poke WTS_SESSION_INFO, SessionId} p $ sessionId x
-    #{poke WTS_SESSION_INFO, pWinStationName} p $ winStationName x
-    #{poke WTS_SESSION_INFO, State} p $ state x
+    #{poke WTS_SESSION_INFOW, SessionId} p $ sessionId x
+    #{poke WTS_SESSION_INFOW, pWinStationName} p $ winStationName x
+    #{poke WTS_SESSION_INFOW, State} p $ state x
 
-type LPWTS_SESSION_INFO = Ptr WTS_SESSION_INFO
+type PWTS_SESSION_INFO = Ptr WTS_SESSION_INFO
 
 data LARGE_INTEGER_STRUCT = LARGE_INTEGER_STRUCT
   { largeIntQuadPart :: LARGE_INTEGER
