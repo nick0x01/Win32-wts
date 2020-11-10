@@ -23,6 +23,7 @@ library
   exposed-modules:
       System.Win32.WTS
       System.Win32.WTS.SessionInformation
+      System.Win32.WTS.WM_WTSSESSION_CHANGE
       System.Win32.WTS.WTS_EVENTS
   other-modules:
       System.Win32.WTS.Internal
