@@ -1,6 +1,9 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module System.Win32.WTS.SessionInformation
   ( querySessionInformation
+  , toNothingIfNoSession
   , querySessionUserName
   , querySessionDomainName
   , queryWinStationName
@@ -9,16 +12,19 @@ module System.Win32.WTS.SessionInformation
   , queryClientBuildNumber
   , convertWtsConnectionState
   , queryClientDisplay
-  , quetyConnectionState
+  , queryConnectionState
   , module Reexports
   ) where
 
+import Control.Exception
 import Foreign
 import Foreign.C.String
 import System.Win32.Types
 import System.Win32.WTS.Internal
 import System.Win32.WTS.SessionInformation.Types
 import System.Win32.WTS.Types
+import qualified System.Win32.Error as Err
+import qualified System.Win32.Error.Foreign as Err
 import qualified System.Win32.WTS.SessionInformation.Types as Reexports
   ( WTSINFO (..), WTSCLIENT (..), WTS_CLIENT_DISPLAY (..) )
 
@@ -29,13 +35,22 @@ querySessionInformation :: HANDLE -> SID -> WtsInfoClass -> (LPWSTR -> DWORD -> 
 querySessionInformation h sid infoClass convertFn =
   with 0 $ \pBytesReturned ->
   alloca $ \ppBuffer -> do
-    failIfFalse_ "WTSQuerySessionInformation"
+    Err.failIfFalse_ "WTSQuerySessionInformation"
       $ c_WTSQuerySessionInformation h sid infoClass' ppBuffer pBytesReturned
     bytesReturned <- peek pBytesReturned
     pBuffer <- peek ppBuffer >>= newForeignPtr wtsFreeFinaliser
     withForeignPtr pBuffer $ \ptr -> convertFn ptr bytesReturned
   where
     infoClass' = WTS_INFO_CLASS (fromIntegral $ fromEnum infoClass)
+
+toNothingIfNoSession :: IO a -> IO (Maybe a)
+toNothingIfNoSession act =
+  Err.tryWin32 act >>= \case
+    Right x -> return (Just x)
+    Left er ->
+      if Err.FileNotFound == Err.errCode er
+        then return Nothing
+        else throwIO er
 
 querySessionStringInfo :: WtsInfoClass -> HANDLE -> SID -> IO String
 querySessionStringInfo infoClass h sid =
@@ -82,7 +97,12 @@ queryClientDisplay h sid =
   querySessionInformation h sid WTSClientDisplay $ \ptr _ ->
     peek (castPtr ptr)
 
-quetyConnectionState :: HANDLE -> SID -> IO WtsConnectState
-quetyConnectionState h sid =
+queryConnectionState :: HANDLE -> SID -> IO WtsConnectState
+queryConnectionState h sid =
   querySessionInformation h sid WTSConnectState $ \ptr _ ->
     convertWtsConnectionState <$> peek (castPtr ptr)
+
+-- queryConnectionStateMaybe :: HANDLE -> SID -> IO (Maybe WtsConnectState)
+-- queryConnectionStateMaybe h sid =
+--   querySessionInformationMaybe h sid WTSConnectState $ \ptr _ ->
+--     convertWtsConnectionState <$> peek (castPtr ptr)

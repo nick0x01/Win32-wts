@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 module System.Win32.WTS
   ( disconnectSession
@@ -48,6 +49,7 @@ import System.Win32.WTS.WTS_EVENTS as E
 import System.Win32.Types
 import qualified Data.Traversable as T
 import qualified Data.Text as T
+import qualified System.Win32.Error.Foreign as Err
 
 -- | Retrieves a list of sessions on a specified Remote Desktop Session Host
 -- (RD Session Host) server.
@@ -56,7 +58,7 @@ enumerateSessions :: HANDLE -> IO [WtsSessionInfo]
 enumerateSessions h =
   with 0 $ \pCount ->
   alloca $ \ppSessionInfo -> do
-    failIfFalse_ "WTSEnumerateSessions"
+    Err.failIfFalse_ "WTSEnumerateSessions"
       $ c_WTSEnumerateSessions h rESERVED wTS_SESSION_INFO_VER_1 ppSessionInfo pCount
     count <- peek pCount
     pSessionInfo <- peek ppSessionInfo >>= newForeignPtr wtsFreeFinaliser
@@ -70,13 +72,13 @@ enumerateSessions h =
 -- session without closing the session.
 -- https://docs.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsdisconnectsession
 disconnectSession :: HANDLE -> SID -> BOOL -> IO ()
-disconnectSession h sid wait = failIfFalse_ "WTSDisconnectSession" $
+disconnectSession h sid wait = Err.failIfFalse_ "WTSDisconnectSession" $
   c_WTSDisconnectSession h sid wait
 
 -- | Logs off a specified Remote Desktop Services session.
 -- https://docs.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtslogoffsession
 logoffSession :: HANDLE -> SID -> BOOL -> IO ()
-logoffSession h sid wait = failIfFalse_ "WTSLogoffSession" $
+logoffSession h sid wait = Err.failIfFalse_ "WTSLogoffSession" $
   c_WTSLogoffSession h sid wait
 
 -- | (!) Call of this function (from other threads) can block the main thread.
@@ -85,7 +87,7 @@ logoffSession h sid wait = failIfFalse_ "WTSLogoffSession" $
 waitSystemEvent :: HANDLE -> [WTS_EVENT] -> IO [WTS_EVENT]
 waitSystemEvent h eventMask =
   with 0 $ \pEventFlags -> do
-    failIfFalse_ "WTSWaitSystemEvent"
+    Err.failIfFalse_ "WTSWaitSystemEvent"
       $ c_WTSWaitSystemEvent h (E.flag eventMask) pEventFlags
     E.peekWtsEvents pEventFlags
 
@@ -125,6 +127,6 @@ sendMessage h sid title message (MessageBoxStyle style) timeout wait =
   with 0 $ \pResponse -> do
     let titleSize = fromIntegral (titleLen * wcharSize)
         messageSize = fromIntegral (messageLen * wcharSize)
-    failIfFalse_ "WTSSendMessage" $
+    Err.failIfFalse_ "WTSSendMessage" $
       c_WTSSendMessage h sid pTitle titleSize pMessage messageSize style timeout pResponse wait
     MessageResponse <$> peek pResponse
