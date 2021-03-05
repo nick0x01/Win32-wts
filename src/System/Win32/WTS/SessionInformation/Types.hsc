@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternSynonyms #-}
 module System.Win32.WTS.SessionInformation.Types where
 
 import Control.Applicative
@@ -141,6 +142,8 @@ instance Storable WTSCLIENT where
     error "The poke function of Storable class is not implemented for WTSCLIENT"
 
 type PWTSCLIENT = Ptr WTSCLIENT
+
+pattern AF_INET = #{const AF_INET}
 
 -- Contains information about a Remote Desktop Services session.
 data WTSINFO = WTSINFO

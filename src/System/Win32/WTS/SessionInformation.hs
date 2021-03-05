@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module System.Win32.WTS.SessionInformation
   ( querySessionInformation
@@ -11,6 +12,7 @@ module System.Win32.WTS.SessionInformation
   , queryClientProtocolType
   , queryClientBuildNumber
   , convertWtsConnectionState
+  , queryClientInfo
   , queryClientDisplay
   , queryConnectionState
   , module Reexports
@@ -26,7 +28,7 @@ import System.Win32.WTS.Types
 import qualified System.Win32.Error as Err
 import qualified System.Win32.Error.Foreign as Err
 import qualified System.Win32.WTS.SessionInformation.Types as Reexports
-  ( WTSINFO (..), WTSCLIENT (..), WTS_CLIENT_DISPLAY (..) )
+  ( WTSINFO (..), WTSCLIENT (..), WTS_CLIENT_DISPLAY (..), pattern AF_INET )
 
 -- | Retrieves session information for the specified session on the specified
 -- Remote Desktop Session Host (RD Session Host) server. It can be used to query
