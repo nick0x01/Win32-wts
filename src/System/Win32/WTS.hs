@@ -12,6 +12,7 @@ module System.Win32.WTS
   -- * Reexports
   , wTS_CURRENT_SERVER
   , wTS_CURRENT_SERVER_HANDLE
+  , wTS_CURRENT_SESSION
   , SID
   , WtsConnectState (..)
   , WtsProtocolType (..)
