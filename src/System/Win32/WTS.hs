@@ -15,6 +15,8 @@ module System.Win32.WTS
   , wTS_CURRENT_SESSION
   , SID
   , WtsConnectState (..)
+  , WTS_CONNECTSTATE_CLASS
+  , convertWtsConnectionState
   , WtsProtocolType (..)
   , WtsSessionInfo (..)
   , MessageResponse (..)
